@@ -1,0 +1,80 @@
+Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection
+
+
+public class InstructorDto
+{
+    public int Id { get; set; }
+    public string FirstName { get; set; }
+}
+
+public class BootcampDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class ApplicantDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; }
+}
+
+
+using AutoMapper;
+using Domain.Entities;
+using Application.DTOs;
+
+public class InstructorProfile : Profile
+{
+    public InstructorProfile()
+    {
+        CreateMap<Instructor, InstructorDto>().ReverseMap();
+    }
+}
+
+
+public class BootcampProfile : Profile
+{
+    public BootcampProfile()
+    {
+        CreateMap<Bootcamp, BootcampDto>().ReverseMap();
+    }
+}
+
+
+public class ApplicantProfile : Profile
+{
+    public ApplicantProfile()
+    {
+        CreateMap<Applicant, ApplicantDto>().ReverseMap();
+    }
+}
+
+builder.Services.AddAutoMapper(typeof(InstructorProfile));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+public class InstructorService : IInstructorService
+{
+    private readonly IInstructorRepository _instructorRepository;
+    private readonly IMapper _mapper;
+
+    public InstructorService(IInstructorRepository instructorRepository, IMapper mapper)
+    {
+        _instructorRepository = instructorRepository;
+        _mapper = mapper;
+    }
+
+    public async Task<List<InstructorDto>> GetAllAsync()
+    {
+        var instructors = await _instructorRepository.GetAllAsync();
+        return _mapper.Map<List<InstructorDto>>(instructors);
+    }
+
+    public async Task<InstructorDto> AddAsync(InstructorDto dto)
+    {
+        var entity = _mapper.Map<Instructor>(dto);
+        var created = await _instructorRepository.AddAsync(entity);
+        return _mapper.Map<InstructorDto>(created);
+    }
+}
+
